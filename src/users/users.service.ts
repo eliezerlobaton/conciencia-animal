@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { generateHash } from 'src/common/handleCrypt';
 
 @Injectable()
 export class UsersService {
@@ -13,8 +14,15 @@ export class UsersService {
     private readonly userRepository: Repository<User>
   ) { }
   async create(createUserDto: CreateUserDto) {
-    const user = this.userRepository.create(createUserDto)
+    const { password, ...userData } = createUserDto
+
+    const user = this.userRepository.create({
+      ...userData,
+      password: await generateHash(password)
+    })
+
     await this.userRepository.save(user)
+
     return user;
   }
 
